@@ -5,7 +5,7 @@
 Nome: Davi [SOBRENOME COMPLETO]
 Turma: [TURMA] — Ciência da Computação, Faculdade COTEMIG
 
-Repositório GitHub: https://github.com/SEU-USUARIO/estoque-facil
+Repositório GitHub: https://github.com/DaviFelipeRosaRaposo/estoque-facil
 Sistema publicado: https://SEU-PROJETO.vercel.app
 
 O Estoque Fácil é um controle de estoque simplificado para pequenos comércios. Com ele é possível cadastrar, consultar, editar e excluir produtos, registrar entradas e saídas com histórico e ver um alerta quando um item chega ao estoque mínimo. Foi desenvolvido em Next.js com TypeScript, com banco PostgreSQL e login pelo Supabase, e publicado na Vercel. A ferramenta de IA utilizada foi o Claude (Anthropic), que ajudou no planejamento, na geração e explicação do código e na execução dos quatro prompts de auditoria. O relatório AUDITORIA.md, os testes automatizados (72 testes, comando `npm test`) e o resumo de cada prompt estão no repositório.

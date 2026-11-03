@@ -68,7 +68,7 @@ docs/                                  planejamento, prompts, testes, evidência
 Pré-requisitos: Node.js 20 ou superior e um projeto gratuito no [Supabase](https://supabase.com).
 
 ```bash
-git clone https://github.com/SEU-USUARIO/estoque-facil.git
+git clone https://github.com/DaviFelipeRosaRaposo/estoque-facil.git
 cd estoque-facil
 npm install
 cp .env.example .env.local      # preencha com os dados do seu Supabase

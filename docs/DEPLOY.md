@@ -26,7 +26,7 @@ npm test                     # 72 testes
 ## 3. GitHub
 
 ```bash
-git remote add origin https://github.com/SEU-USUARIO/estoque-facil.git
+git remote add origin https://github.com/DaviFelipeRosaRaposo/estoque-facil.git
 git branch -M main
 git push -u origin main
 ```
