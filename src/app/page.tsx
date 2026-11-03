@@ -14,6 +14,11 @@ import {
   type ErrosFormProduto,
   type FormProduto,
 } from "@/lib/cliente/formulario-produto";
+import { Aviso, type Mensagem } from "@/components/estoque/Aviso";
+import { Cabecalho } from "@/components/estoque/Cabecalho";
+import { campo } from "@/components/estoque/estilos";
+import { ListaProdutos } from "@/components/estoque/ListaProdutos";
+import { AlertaEstoqueBaixo, ResumoEstoque } from "@/components/estoque/ResumoEstoque";
 import { resumoVazio, type Movimentacao, type Produto, type Resumo } from "@/lib/cliente/tipos";
 
 export default function Home() {
@@ -25,7 +30,7 @@ export default function Home() {
   const [resumo, setResumo] = useState<Resumo>(resumoVazio);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
-  const [mensagem, setMensagem] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Produto | null>(null);
@@ -86,8 +91,6 @@ export default function Home() {
     return p.nome.toLowerCase().includes(termo) || (p.categoria ?? "").toLowerCase().includes(termo);
   });
 
-  // "Estoque baixo" e o resumo vêm calculados do servidor.
-  const emAlerta = produtos.filter((p) => p.estoque_baixo);
 
   // ---------- cadastro / edição ----------
   function abrirNovo() {
@@ -188,61 +191,16 @@ export default function Home() {
   }
 
   // ---------- tela ----------
-  const campo =
-    "w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100";
-
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 font-bold text-white">E</div>
-            <span className="text-lg font-semibold">Estoque Fácil</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-slate-500 sm:inline">{email}</span>
-            <button onClick={sair} className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-100">
-              Sair
-            </button>
-          </div>
-        </div>
-      </header>
+      <Cabecalho email={email} onSair={sair} />
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        {mensagem && (
-          <div
-            role={mensagem.tipo === "erro" ? "alert" : "status"}
-            className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
-              mensagem.tipo === "erro"
-                ? "border-red-200 bg-red-50 text-red-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-800"
-            }`}
-          >
-            {mensagem.texto}
-          </div>
-        )}
+        {mensagem && <Aviso mensagem={mensagem} />}
 
-        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Produtos cadastrados</p>
-            <p className="mt-1 text-2xl font-semibold">{resumo.total_produtos}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Em estoque baixo</p>
-            <p className={`mt-1 text-2xl font-semibold ${resumo.em_alerta ? "text-amber-600" : ""}`}>{resumo.em_alerta}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Valor em estoque</p>
-            <p className="mt-1 text-2xl font-semibold">{formatarMoeda(resumo.valor_total)}</p>
-          </div>
-        </section>
+        <ResumoEstoque resumo={resumo} />
 
-        {emAlerta.length > 0 && (
-          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <strong>Atenção:</strong> {emAlerta.map((p) => p.nome).join(", ")}{" "}
-            {emAlerta.length === 1 ? "está" : "estão"} com estoque baixo.
-          </div>
-        )}
+        <AlertaEstoqueBaixo produtos={produtos} />
 
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <input
@@ -260,70 +218,15 @@ export default function Home() {
           </button>
         </div>
 
-        {carregando ? (
-          <p className="py-10 text-center text-slate-500">Carregando...</p>
-        ) : filtrados.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-slate-500">
-            {produtos.length === 0 ? "Nenhum produto cadastrado ainda." : "Nenhum produto encontrado para essa busca."}
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {filtrados.map((p) => {
-              const baixo = p.estoque_baixo;
-              return (
-                <li
-                  key={p.id}
-                  className={`rounded-xl border bg-white p-4 ${baixo ? "border-amber-300" : "border-slate-200"}`}
-                >
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button onClick={() => abrirDetalhe(p)} className="truncate text-left font-semibold hover:underline">
-                          {p.nome}
-                        </button>
-                        {p.categoria && (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{p.categoria}</span>
-                        )}
-                        {baixo && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                            Estoque baixo
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {formatarMoeda(p.preco)} · <strong className="text-slate-800">{p.quantidade}</strong> em estoque · mínimo{" "}
-                        {p.estoque_minimo}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-sm">
-                      <button
-                        onClick={() => abrirMovimentacao(p, "entrada")}
-                        className="rounded-lg bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700 hover:bg-emerald-100"
-                      >
-                        Entrada
-                      </button>
-                      <button
-                        onClick={() => abrirMovimentacao(p, "saida")}
-                        className="rounded-lg bg-sky-50 px-3 py-1.5 font-medium text-sky-700 hover:bg-sky-100"
-                      >
-                        Saída
-                      </button>
-                      <button onClick={() => abrirEdicao(p)} className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-100">
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => setExcluindo(p)}
-                        className="rounded-lg border border-red-200 px-3 py-1.5 text-red-700 hover:bg-red-50"
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <ListaProdutos
+          carregando={carregando}
+          produtos={produtos}
+          filtrados={filtrados}
+          onDetalhe={abrirDetalhe}
+          onMovimentar={abrirMovimentacao}
+          onEditar={abrirEdicao}
+          onExcluir={setExcluindo}
+        />
       </main>
 
       {/* Modal de cadastro / edição */}
