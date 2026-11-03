@@ -1,0 +1,84 @@
+
+ RUN  v5.1.0 /home/claude/estoque-facil
+
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > mostra o e-mail, o resumo vindo do servidor e os produtos 78ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > destaca os produtos com estoque baixo e mostra o aviso com os nomes 23ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > filtra por nome ou categoria sem chamar o servidor de novo 176ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > mostra mensagem de lista vazia quando não há produtos 9ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > redireciona para /login quando o servidor responde 401 8ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > mostra erro quando a listagem falha 16ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — listagem e resumo > sai da conta e volta para /login 46ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — cadastro e edição > valida na tela e não chama o servidor quando nome está vazio e preço é negativo 92ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — cadastro e edição > cadastra enviando quantidade_inicial e mostra sucesso 185ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — cadastro e edição > mostra os erros de campo devolvidos pelo servidor 98ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — cadastro e edição > na edição, esconde a quantidade e envia PATCH sem quantidade 73ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — cadastro e edição > cancelar fecha o formulário sem chamar o servidor 54ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — movimentações > registra saída enviando só tipo, quantidade e observação 124ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — movimentações > permite trocar entre entrada e saída dentro do modal 78ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — movimentações > não chama o servidor quando a quantidade é zero 74ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — movimentações > mostra o erro do servidor quando o estoque é insuficiente e recarrega a lista 87ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — movimentações > desabilita o botão durante o envio (duplo clique envia uma vez só) 61ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — detalhes e exclusão > abre os detalhes com o histórico vindo do servidor 55ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — detalhes e exclusão > pede confirmação e exclui com DELETE 43ms
+ ✓ tests/tela/pagina-estoque.test.tsx > Tela principal — detalhes e exclusão > mostra o erro do servidor quando a exclusão falha 41ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o usuário não está logado, então responde 401 94ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando registra uma entrada, então soma à quantidade e grava o histórico 18ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando registra uma saída com saldo, então subtrai 15ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando a saída é exatamente igual ao saldo, então o estoque fica zerado (limite) 13ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando a saída é maior que o saldo, então responde 409 e nada muda 18ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o estoque está zerado e tenta saída, então responde 409 14ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o corpo é inválido ({"tipo":"entrada","quantidade":0}), então responde 400 no campo quantidade 12ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o corpo é inválido ({"tipo":"entrada","quantidade":-2}), então responde 400 no campo quantidade 11ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o corpo é inválido ({"tipo":"saida","quantidade":1.5}), então responde 400 no campo quantidade 23ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o corpo é inválido ({"tipo":"ajuste","quantidade":1}), então responde 400 no campo tipo 13ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o corpo é inválido ({"tipo":"entrada","quantidade":1,"observacao":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}), então responde 400 no campo observacao 11ms
+ ✓ tests/api/movimentacoes.test.ts > POST /api/produtos/:id/movimentacoes — entrada e saída > quando o produto não existe, então responde 404 9ms
+ ✓ tests/api/movimentacoes.test.ts > Movimentações simultâneas (race condition) > quando duas saídas do último item chegam ao mesmo tempo, então só uma é aceita e o estoque termina em 0 21ms
+ ✓ tests/api/movimentacoes.test.ts > Movimentações simultâneas (race condition) > quando dez saídas chegam ao mesmo tempo com saldo 5, então exatamente 5 passam e o histórico bate 65ms
+ ✓ tests/api/movimentacoes.test.ts > Movimentações simultâneas (race condition) > quando entradas e saídas simultâneas acontecem, então o saldo final é exatamente a soma de todas 38ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o usuário não está logado, então responde 401 e nada é gravado 76ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando os dados são válidos, então responde 201, grava com o usuário da sessão como dono e calcula estoque_baixo 25ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando informa quantidade inicial, então cria uma movimentação de entrada "Estoque inicial" 15ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o nome está vazio ou o preço é negativo, então responde 400 com a mensagem de cada campo 17ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o preço não é número, então responde 400 10ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando a quantidade inicial é decimal ou negativa, então responde 400 9ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o nome passa de 100 caracteres, então responde 400 8ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o corpo não é JSON, então responde 400 9ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o cliente envia user_id de outro usuário, então o servidor ignora e o dono é quem está logado 13ms
+ ✓ tests/api/produtos.test.ts > POST /api/produtos — cadastro de produto > quando o preço é zero, então aceita (limite válido) 11ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos — listagem, busca e resumo > quando o usuário não está logado, então responde 401 10ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos — listagem, busca e resumo > quando o usuário tem produtos, então lista os dele com total, alertas e valor em estoque 23ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos — listagem, busca e resumo > quando busca por parte do nome ou da categoria, então filtra sem diferenciar maiúsculas 26ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos — listagem, busca e resumo > quando a busca contém %, então trata como texto e não como curinga 19ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos — listagem, busca e resumo > quando a quantidade é igual ao mínimo, então marca como estoque baixo (limite) 27ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos/:id — detalhe > quando o produto é do usuário, então devolve os dados e o histórico do mais recente para o mais antigo 26ms
+ ✓ tests/api/produtos.test.ts > GET /api/produtos/:id — detalhe > quando o id não existe ou é malformado, então responde 404 15ms
+ ✓ tests/api/produtos.test.ts > PATCH /api/produtos/:id — edição > quando os dados são válidos, então atualiza nome, categoria, preço e mínimo 17ms
+ ✓ tests/api/produtos.test.ts > PATCH /api/produtos/:id — edição > quando o corpo traz quantidade, então ela é ignorada e o estoque não muda 17ms
+ ✓ tests/api/produtos.test.ts > PATCH /api/produtos/:id — edição > quando o estoque mínimo é negativo, então responde 400 14ms
+ ✓ tests/api/produtos.test.ts > PATCH /api/produtos/:id — edição > quando o produto não existe, então responde 404 11ms
+ ✓ tests/api/produtos.test.ts > DELETE /api/produtos/:id — exclusão > quando o produto é do usuário, então responde 204 e apaga o produto e o histórico 17ms
+ ✓ tests/api/produtos.test.ts > DELETE /api/produtos/:id — exclusão > quando repete a exclusão (clicou 2 vezes), então a segunda responde 404 e nada quebra 22ms
+ ✓ tests/api/acesso-indevido.test.ts > Acesso indevido — usuário B tentando mexer nos dados do usuário A > quando B lista produtos, então não vê nenhum produto de A e o resumo é só dele 115ms
+ ✓ tests/api/acesso-indevido.test.ts > Acesso indevido — usuário B tentando mexer nos dados do usuário A > quando B tenta ler o produto de A, então responde 404 18ms
+ ✓ tests/api/acesso-indevido.test.ts > Acesso indevido — usuário B tentando mexer nos dados do usuário A > quando B tenta editar o produto de A, então responde 404 e o produto não muda 19ms
+ ✓ tests/api/acesso-indevido.test.ts > Acesso indevido — usuário B tentando mexer nos dados do usuário A > quando B tenta excluir o produto de A, então responde 404 e o produto continua existindo 35ms
+ ✓ tests/api/acesso-indevido.test.ts > Acesso indevido — usuário B tentando mexer nos dados do usuário A > quando B tenta registrar saída no produto de A, então responde 404 e o estoque de A não muda 27ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando um visitante (anon) tenta ler movimentações, então o banco nega 37ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando o próprio dono (authenticated) tenta ler produtos direto pela API, então o banco nega 16ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando authenticated tenta inserir movimentação direto, então o banco nega 15ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando authenticated tenta alterar a quantidade direto, então o banco nega 14ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando o servidor (estoque_app) tenta alterar a quantidade sem a função de movimentação, então o banco nega 14ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando o servidor tenta inserir movimentação direto na tabela, então o banco nega 15ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando estoque_app roda sem usuário definido, então não enxerga nenhuma linha 15ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando o servidor tenta apagar o histórico, então o banco nega 16ms
+ ✓ tests/db/policies.test.ts > Banco exposto pela API do Supabase (policies e privilégios) > quando o banco recebe preço ou quantidade negativos por fora do servidor, então as constraints recusam 28ms
+
+ Test Files  5 passed (5)
+      Tests  72 passed (72)
+   Start at  21:35:27
+   Duration  5.53s (tests 73%, environment 16%, import 5%, setup 4%, transform 2%, worker 1%)
+
+    Isolate  5 workers spawned · ~247ms startup each (spawn + environment, per file)
+             at least ~989ms faster with isolate: false — reuses workers across files instead of one per file
+

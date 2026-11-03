@@ -30,12 +30,14 @@ Os testes chamam as rotas reais (`src/app/api/**/route.ts`), com banco real, val
 
 ## Resultado da execução
 
-Saída completa em `docs/evidencias/saida-testes-integracao.txt`.
+Saída completa em `docs/evidencias/saida-testes.txt`.
 
 ```
- Test Files  4 passed (4)
-      Tests  52 passed (52)
+ Test Files  5 passed (5)
+      Tests  72 passed (72)
 ```
+
+São 52 testes de integração e de policies, mais 20 de caracterização da tela (`tests/tela/`), escritos antes da refatoração do Prompt 2.
 
 ### Prova de que os testes pegam erros
 
