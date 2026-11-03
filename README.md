@@ -6,7 +6,7 @@ Controle de estoque simplificado para pequenos comércios. Permite cadastrar pro
 
 Atividade prática **"Desenvolvimento de um sistema simples utilizando Inteligência Artificial"**. Tema B: Controle de estoque simplificado.
 
-![Painel do Estoque Fácil](docs/evidencias/02-painel.png)
+![Painel do Estoque Fácil](docs/evidencias/Captura%20de%20tela%202026-11-02%20225409.png)
 
 ## Funcionalidades
 
