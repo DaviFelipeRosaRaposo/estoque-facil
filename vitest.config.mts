@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.{ts,tsx}"],
     globalSetup: ["tests/setup/banco-global.ts"],
     setupFiles: ["tests/setup/por-arquivo.ts"],
     // Todos os arquivos usam o mesmo banco de teste: um arquivo por vez.
