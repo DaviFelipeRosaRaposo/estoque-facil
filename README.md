@@ -6,7 +6,7 @@ Controle de estoque simplificado para pequenos comércios. Permite cadastrar pro
 
 Atividade prática **"Desenvolvimento de um sistema simples utilizando Inteligência Artificial"**. Tema B: Controle de estoque simplificado.
 
-![Painel do Estoque Fácil](docs/evidencias/Captura%20de%20tela%202026-11-02%20225409.png)
+![Painel do Estoque Fácil](docs/evidencias/08-sistema-publicado.png)
 
 ## Funcionalidades
 
@@ -119,7 +119,7 @@ Resumo de achados, riscos e decisões: [`docs/RESUMO-PROMPTS.md`](docs/RESUMO-PR
 | Entrada inválida (validação) | [`04-validacao-campos.png`](docs/evidencias/04-validacao-campos.png) |
 | Saída maior que o estoque | [`05-estoque-insuficiente.png`](docs/evidencias/05-estoque-insuficiente.png) |
 | Celular | [`06-celular.png`](docs/evidencias/06-celular.png), [`07-celular-entrada.png`](docs/evidencias/07-celular-entrada.png) |
-
+| Sistema publicado na Vercel | [`08-sistema-publicado.png`](docs/evidencias/08-sistema-publicado.png) |
 ## Autor
 
-Davi — Ciência da Computação, Faculdade COTEMIG.
+Davi — ADS, Faculdade COTEMIG.
