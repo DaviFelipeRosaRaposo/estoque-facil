@@ -57,4 +57,4 @@ O repositório já tem todo o histórico de commits (versão 1 → auditoria →
 | Fica voltando para o login | URL ou publishable key erradas, ou e-mail ainda não confirmado. |
 | `relation "produtos" does not exist` | As migrations não foram rodadas, ou rodaram fora de ordem. |
 
-Pontos verificados só no banco de teste (que simula o Supabase), não num projeto Supabase real: o comando `grant estoque_app to postgres` e a conexão pelo pooler com `SET ROLE`. Se o passo 2 da migration 2 der erro, anote o erro e me mostre.
+Pontos verificados só no banco de teste (que simula o Supabase), não num projeto Supabase real: o comando `grant estoque_app to postgres` e a conexão pelo pooler com `SET ROLE`.
