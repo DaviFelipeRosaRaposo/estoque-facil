@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { chamarApi } from "@/lib/cliente/api";
-import { formatarData, formatarMoeda } from "@/lib/cliente/formatacao";
 import { Aviso, type Mensagem } from "@/components/estoque/Aviso";
 import { Cabecalho } from "@/components/estoque/Cabecalho";
 import { campo } from "@/components/estoque/estilos";
+import { ConfirmarExclusao } from "@/components/estoque/ConfirmarExclusao";
 import { ListaProdutos } from "@/components/estoque/ListaProdutos";
+import { ModalDetalhes } from "@/components/estoque/ModalDetalhes";
 import { ModalMovimentacao } from "@/components/estoque/ModalMovimentacao";
 import { ModalProduto } from "@/components/estoque/ModalProduto";
 import { AlertaEstoqueBaixo, ResumoEstoque } from "@/components/estoque/ResumoEstoque";
@@ -76,7 +77,6 @@ export default function Home() {
     if (!termo) return true;
     return p.nome.toLowerCase().includes(termo) || (p.categoria ?? "").toLowerCase().includes(termo);
   });
-
 
   // ---------- cadastro / edição ----------
   function abrirNovo() {
@@ -191,73 +191,11 @@ export default function Home() {
       )}
 
       {/* Modal de detalhes */}
-      {detalhe && (
-        <div className="fixed inset-0 z-10 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-6 sm:rounded-2xl">
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold">{detalhe.nome}</h2>
-                <p className="text-sm text-slate-500">{detalhe.categoria ?? "Sem categoria"}</p>
-              </div>
-              <button onClick={() => setDetalhe(null)} className="rounded-lg border border-slate-300 px-3 py-1 text-sm">
-                Fechar
-              </button>
-            </div>
-            <dl className="mb-5 grid grid-cols-3 gap-3 text-sm">
-              <div>
-                <dt className="text-slate-500">Preço</dt>
-                <dd className="font-medium">{formatarMoeda(detalhe.preco)}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Quantidade</dt>
-                <dd className="font-medium">{detalhe.quantidade}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Mínimo</dt>
-                <dd className="font-medium">{detalhe.estoque_minimo}</dd>
-              </div>
-            </dl>
-            <h3 className="mb-2 font-medium">Histórico de movimentações</h3>
-            {historico.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhuma movimentação registrada.</p>
-            ) : (
-              <ul className="divide-y divide-slate-100 text-sm">
-                {historico.map((m) => (
-                  <li key={m.id} className="flex items-center justify-between py-2">
-                    <span>
-                      <span className={m.tipo === "entrada" ? "text-emerald-700" : "text-sky-700"}>
-                        {m.tipo === "entrada" ? "+" : "−"}
-                        {m.quantidade}
-                      </span>{" "}
-                      {m.observacao && <span className="text-slate-500">· {m.observacao}</span>}
-                    </span>
-                    <span className="text-slate-400">{formatarData(m.created_at)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
+      {detalhe && <ModalDetalhes produto={detalhe} historico={historico} onFechar={() => setDetalhe(null)} />}
 
       {/* Confirmação de exclusão */}
       {excluindo && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6">
-            <h2 className="text-lg font-semibold">Excluir produto?</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              &quot;{excluindo.nome}&quot; e todo o seu histórico de movimentações serão apagados. Essa ação não pode ser desfeita.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setExcluindo(null)} className="rounded-lg border border-slate-300 px-4 py-2">
-                Cancelar
-              </button>
-              <button onClick={confirmarExclusao} className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700">
-                Excluir
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmarExclusao produto={excluindo} onCancelar={() => setExcluindo(null)} onConfirmar={confirmarExclusao} />
       )}
     </div>
   );

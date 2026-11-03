@@ -60,7 +60,15 @@ Os nomes públicos não mudaram: a página continua sendo o `export default Home
 
 ## 5. Resultado
 
-Ver a tabela de resultado no fim deste arquivo, preenchida depois da execução.
+Cada passo foi um commit separado (`refactor(passo N): ...`), com `npm test` rodando no fim de cada um. Em todos os passos passaram os 72 testes: 52 de integração e 20 de caracterização da tela.
+
+| Métrica | Antes | Depois |
+|---|---|---|
+| Linhas de `src/app/page.tsx` | 614 | 202 |
+| `useState` em `page.tsx` | 17 | 10 |
+| Responsabilidades de `page.tsx` | tela + regra + dados | só orquestra a tela (quais modais estão abertos e recarregar a lista) |
+| Arquivos novos | — | 4 em `src/lib/cliente/`, 9 em `src/components/estoque/` |
+| Comportamento | — | igual: nenhum teste foi alterado durante a refatoração |
 
 ## Bugs encontrados durante a refatoração (anotados, NÃO corrigidos)
 
