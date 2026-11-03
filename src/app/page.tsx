@@ -3,47 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-type Produto = {
-  id: string;
-  nome: string;
-  categoria: string | null;
-  preco: number;
-  quantidade: number;
-  estoque_minimo: number;
-  estoque_baixo: boolean;
-  created_at: string;
-};
-
-type Resumo = { total_produtos: number; em_alerta: number; valor_total: number };
-
-type RespostaApi<T> =
-  | { ok: true; dados: T }
-  | { ok: false; status: number; erro: string; campos?: Record<string, string> };
-
-async function chamarApi<T>(url: string, init?: RequestInit): Promise<RespostaApi<T>> {
-  try {
-    const res = await fetch(url, {
-      ...init,
-      headers: init?.body ? { "Content-Type": "application/json" } : undefined,
-    });
-    if (res.status === 204) return { ok: true, dados: undefined as T };
-    const corpo = await res.json().catch(() => ({}));
-    if (res.ok) return { ok: true, dados: corpo as T };
-    return { ok: false, status: res.status, erro: corpo.erro ?? "Erro inesperado.", campos: corpo.campos };
-  } catch {
-    return { ok: false, status: 0, erro: "Sem conexão com o servidor." };
-  }
-}
-
-type Movimentacao = {
-  id: string;
-  produto_id: string;
-  tipo: "entrada" | "saida";
-  quantidade: number;
-  observacao: string | null;
-  created_at: string;
-};
+import { chamarApi } from "@/lib/cliente/api";
+import { formatarData, formatarMoeda } from "@/lib/cliente/formatacao";
+import { resumoVazio, type Movimentacao, type Produto, type Resumo } from "@/lib/cliente/tipos";
 
 type FormProduto = {
   nome: string;
@@ -54,15 +16,6 @@ type FormProduto = {
 };
 
 const formVazio: FormProduto = { nome: "", categoria: "", preco: "", quantidade: "0", estoque_minimo: "5" };
-const resumoVazio: Resumo = { total_produtos: 0, em_alerta: 0, valor_total: 0 };
-
-function formatarMoeda(valor: number) {
-  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function formatarData(iso: string) {
-  return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-}
 
 export default function Home() {
   const router = useRouter();
