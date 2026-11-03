@@ -9,6 +9,7 @@ import { Aviso, type Mensagem } from "@/components/estoque/Aviso";
 import { Cabecalho } from "@/components/estoque/Cabecalho";
 import { campo } from "@/components/estoque/estilos";
 import { ListaProdutos } from "@/components/estoque/ListaProdutos";
+import { ModalMovimentacao } from "@/components/estoque/ModalMovimentacao";
 import { ModalProduto } from "@/components/estoque/ModalProduto";
 import { AlertaEstoqueBaixo, ResumoEstoque } from "@/components/estoque/ResumoEstoque";
 import { resumoVazio, type Movimentacao, type Produto, type Resumo } from "@/lib/cliente/tipos";
@@ -29,10 +30,6 @@ export default function Home() {
 
   const [movProduto, setMovProduto] = useState<Produto | null>(null);
   const [movTipo, setMovTipo] = useState<"entrada" | "saida">("entrada");
-  const [movQtd, setMovQtd] = useState("1");
-  const [movObs, setMovObs] = useState("");
-  const [movErro, setMovErro] = useState<string | null>(null);
-  const [movEnviando, setMovEnviando] = useState(false);
 
   const [detalhe, setDetalhe] = useState<Produto | null>(null);
   const [historico, setHistorico] = useState<Movimentacao[]>([]);
@@ -112,36 +109,10 @@ export default function Home() {
   function abrirMovimentacao(p: Produto, tipo: "entrada" | "saida") {
     setMovProduto(p);
     setMovTipo(tipo);
-    setMovQtd("1");
-    setMovObs("");
-    setMovErro(null);
   }
 
-  async function registrarMovimentacao(e: React.FormEvent) {
-    e.preventDefault();
-    if (!movProduto) return;
-    const qtd = Number(movQtd);
-    if (!Number.isInteger(qtd) || qtd <= 0) {
-      setMovErro("Informe uma quantidade inteira maior que zero.");
-      return;
-    }
-    if (movEnviando) return;
-
-    // O servidor recebe só o tipo e quanto entra/sai; ele confere o saldo e
-    // atualiza a quantidade de forma atômica.
-    setMovEnviando(true);
-    const r = await chamarApi(`/api/produtos/${movProduto.id}/movimentacoes`, {
-      method: "POST",
-      body: JSON.stringify({ tipo: movTipo, quantidade: qtd, observacao: movObs.trim() || null }),
-    });
-    setMovEnviando(false);
-    if (!r.ok) {
-      setMovErro(r.erro);
-      if (r.status === 409) carregarProdutos();
-      return;
-    }
-
-    avisar("sucesso", movTipo === "entrada" ? "Entrada registrada." : "Saída registrada.");
+  function movimentacaoRegistrada(texto: string) {
+    avisar("sucesso", texto);
     setMovProduto(null);
     carregarProdutos();
   }
@@ -210,57 +181,13 @@ export default function Home() {
 
       {/* Modal de movimentação */}
       {movProduto && (
-        <div className="fixed inset-0 z-10 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
-          <div className="w-full max-w-md rounded-t-2xl bg-white p-6 sm:rounded-2xl">
-            <h2 className="text-lg font-semibold">
-              {movTipo === "entrada" ? "Registrar entrada" : "Registrar saída"}
-            </h2>
-            <p className="mb-4 text-sm text-slate-500">
-              {movProduto.nome} · {movProduto.quantidade} em estoque
-            </p>
-            {movErro && (
-              <div role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {movErro}
-              </div>
-            )}
-            <form onSubmit={registrarMovimentacao} className="space-y-3" noValidate>
-              <div className="grid grid-cols-2 gap-2">
-                {(["entrada", "saida"] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setMovTipo(t)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-medium ${
-                      movTipo === t ? "border-emerald-600 bg-emerald-50 text-emerald-800" : "border-slate-300"
-                    }`}
-                  >
-                    {t === "entrada" ? "Entrada" : "Saída"}
-                  </button>
-                ))}
-              </div>
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium">Quantidade *</span>
-                <input type="number" min="1" className={campo} value={movQtd} onChange={(e) => setMovQtd(e.target.value)} />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium">Observação</span>
-                <input className={campo} value={movObs} onChange={(e) => setMovObs(e.target.value)} />
-              </label>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setMovProduto(null)} className="rounded-lg border border-slate-300 px-4 py-2">
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={movEnviando}
-                  className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-                >
-                  {movEnviando ? "Registrando..." : "Confirmar"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ModalMovimentacao
+          produto={movProduto}
+          tipoInicial={movTipo}
+          onFechar={() => setMovProduto(null)}
+          onRegistrado={movimentacaoRegistrada}
+          onEstoqueInsuficiente={carregarProdutos}
+        />
       )}
 
       {/* Modal de detalhes */}
