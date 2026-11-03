@@ -3,7 +3,7 @@
 ## Postagem no Google Classroom
 
 Nome: Davi Felipe Rosa Raposo
-Turma: [TURMA] — Ciência da Computação, Faculdade COTEMIG
+Turma: 2C7 — Ciência da Computação, Faculdade COTEMIG
 
 Repositório GitHub: https://github.com/DaviFelipeRosaRaposo/estoque-facil
 **Sistema publicado:** https://estoque-facil-phi.vercel.app
