@@ -5,17 +5,16 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { chamarApi } from "@/lib/cliente/api";
 import { formatarData, formatarMoeda } from "@/lib/cliente/formatacao";
+import {
+  corpoDoForm,
+  errosDoServidor,
+  formVazio,
+  produtoParaForm,
+  validarFormProduto,
+  type ErrosFormProduto,
+  type FormProduto,
+} from "@/lib/cliente/formulario-produto";
 import { resumoVazio, type Movimentacao, type Produto, type Resumo } from "@/lib/cliente/tipos";
-
-type FormProduto = {
-  nome: string;
-  categoria: string;
-  preco: string;
-  quantidade: string;
-  estoque_minimo: string;
-};
-
-const formVazio: FormProduto = { nome: "", categoria: "", preco: "", quantidade: "0", estoque_minimo: "5" };
 
 export default function Home() {
   const router = useRouter();
@@ -31,7 +30,7 @@ export default function Home() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Produto | null>(null);
   const [form, setForm] = useState<FormProduto>(formVazio);
-  const [errosForm, setErrosForm] = useState<Partial<Record<keyof FormProduto, string>>>({});
+  const [errosForm, setErrosForm] = useState<ErrosFormProduto>({});
   const [salvando, setSalvando] = useState(false);
 
   const [movProduto, setMovProduto] = useState<Produto | null>(null);
@@ -100,56 +99,26 @@ export default function Home() {
 
   function abrirEdicao(p: Produto) {
     setEditando(p);
-    setForm({
-      nome: p.nome,
-      categoria: p.categoria ?? "",
-      preco: String(p.preco),
-      quantidade: String(p.quantidade),
-      estoque_minimo: String(p.estoque_minimo),
-    });
+    setForm(produtoParaForm(p));
     setErrosForm({});
     setFormAberto(true);
   }
 
-  function validar(f: FormProduto) {
-    const erros: Partial<Record<keyof FormProduto, string>> = {};
-    if (!f.nome.trim()) erros.nome = "Informe o nome do produto.";
-    if (f.preco === "" || isNaN(Number(f.preco))) erros.preco = "Informe um preço válido.";
-    else if (Number(f.preco) < 0) erros.preco = "O preço não pode ser negativo.";
-    if (!Number.isInteger(Number(f.quantidade)) || Number(f.quantidade) < 0)
-      erros.quantidade = "A quantidade deve ser um número inteiro maior ou igual a zero.";
-    if (!Number.isInteger(Number(f.estoque_minimo)) || Number(f.estoque_minimo) < 0)
-      erros.estoque_minimo = "O estoque mínimo deve ser um número inteiro maior ou igual a zero.";
-    return erros;
-  }
-
   async function salvarProduto(e: React.FormEvent) {
     e.preventDefault();
-    const erros = validar(form);
+    const erros = validarFormProduto(form);
     setErrosForm(erros);
     if (Object.keys(erros).length > 0) return;
 
     setSalvando(true);
-    const dados = {
-      nome: form.nome.trim(),
-      categoria: form.categoria.trim() || null,
-      preco: Number(form.preco),
-      estoque_minimo: Number(form.estoque_minimo),
-    };
-
+    const corpo = JSON.stringify(corpoDoForm(form, Boolean(editando)));
     const r = editando
-      ? await chamarApi(`/api/produtos/${editando.id}`, { method: "PATCH", body: JSON.stringify(dados) })
-      : await chamarApi("/api/produtos", {
-          method: "POST",
-          body: JSON.stringify({ ...dados, quantidade_inicial: Number(form.quantidade) }),
-        });
+      ? await chamarApi(`/api/produtos/${editando.id}`, { method: "PATCH", body: corpo })
+      : await chamarApi("/api/produtos", { method: "POST", body: corpo });
     setSalvando(false);
 
     if (!r.ok) {
-      if (r.campos) {
-        const { quantidade_inicial, ...outros } = r.campos;
-        setErrosForm({ ...outros, ...(quantidade_inicial ? { quantidade: quantidade_inicial } : {}) });
-      }
+      if (r.campos) setErrosForm(errosDoServidor(r.campos));
       return avisar("erro", r.erro);
     }
     avisar("sucesso", editando ? "Produto atualizado com sucesso." : "Produto cadastrado com sucesso.");
