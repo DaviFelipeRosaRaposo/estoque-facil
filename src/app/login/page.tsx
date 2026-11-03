@@ -43,7 +43,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signUp({ email, password: senha });
       setCarregando(false);
       if (error) {
-        setErro("Não foi possível criar a conta: " + error.message);
+        setErro("Não foi possível criar a conta. Verifique o e-mail e tente novamente.");
         return;
       }
       if (data.session) {
