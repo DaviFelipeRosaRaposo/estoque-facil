@@ -51,7 +51,7 @@ function validarInteiro(valor: unknown, campo: string, rotulo: string, erros: Er
     return 0;
   }
   if (n < 0) {
-    erros[campo] = `${rotulo} não pode ser negativo.`;
+    erros[campo] = `${rotulo} não pode ser menor que zero.`;
     return 0;
   }
   if (n > INTEIRO_MAXIMO) {
