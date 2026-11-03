@@ -6,14 +6,35 @@ import { createClient } from "@/lib/supabase/client";
 
 type Produto = {
   id: string;
-  user_id: string;
   nome: string;
   categoria: string | null;
   preco: number;
   quantidade: number;
   estoque_minimo: number;
+  estoque_baixo: boolean;
   created_at: string;
 };
+
+type Resumo = { total_produtos: number; em_alerta: number; valor_total: number };
+
+type RespostaApi<T> =
+  | { ok: true; dados: T }
+  | { ok: false; status: number; erro: string; campos?: Record<string, string> };
+
+async function chamarApi<T>(url: string, init?: RequestInit): Promise<RespostaApi<T>> {
+  try {
+    const res = await fetch(url, {
+      ...init,
+      headers: init?.body ? { "Content-Type": "application/json" } : undefined,
+    });
+    if (res.status === 204) return { ok: true, dados: undefined as T };
+    const corpo = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, dados: corpo as T };
+    return { ok: false, status: res.status, erro: corpo.erro ?? "Erro inesperado.", campos: corpo.campos };
+  } catch {
+    return { ok: false, status: 0, erro: "Sem conexão com o servidor." };
+  }
+}
 
 type Movimentacao = {
   id: string;
@@ -33,6 +54,7 @@ type FormProduto = {
 };
 
 const formVazio: FormProduto = { nome: "", categoria: "", preco: "", quantidade: "0", estoque_minimo: "5" };
+const resumoVazio: Resumo = { total_produtos: 0, em_alerta: 0, valor_total: 0 };
 
 function formatarMoeda(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -48,6 +70,7 @@ export default function Home() {
 
   const [email, setEmail] = useState<string | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [resumo, setResumo] = useState<Resumo>(resumoVazio);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
   const [mensagem, setMensagem] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
@@ -63,6 +86,7 @@ export default function Home() {
   const [movQtd, setMovQtd] = useState("1");
   const [movObs, setMovObs] = useState("");
   const [movErro, setMovErro] = useState<string | null>(null);
+  const [movEnviando, setMovEnviando] = useState(false);
 
   const [detalhe, setDetalhe] = useState<Produto | null>(null);
   const [historico, setHistorico] = useState<Movimentacao[]>([]);
@@ -75,14 +99,17 @@ export default function Home() {
   }
 
   const carregarProdutos = useCallback(async () => {
-    const { data, error } = await supabase.from("produtos").select("*").order("nome");
-    if (error) {
-      avisar("erro", "Erro ao carregar produtos.");
+    const r = await chamarApi<{ produtos: Produto[]; resumo: Resumo }>("/api/produtos");
+    if (r.ok) {
+      setProdutos(r.dados.produtos);
+      setResumo(r.dados.resumo);
+    } else if (r.status === 401) {
+      router.replace("/login");
     } else {
-      setProdutos((data ?? []).map((p) => ({ ...p, preco: Number(p.preco) })));
+      avisar("erro", "Erro ao carregar produtos.");
     }
     setCarregando(false);
-  }, [supabase]);
+  }, [router]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -107,8 +134,8 @@ export default function Home() {
     return p.nome.toLowerCase().includes(termo) || (p.categoria ?? "").toLowerCase().includes(termo);
   });
 
-  const emAlerta = produtos.filter((p) => p.quantidade <= p.estoque_minimo);
-  const valorTotal = produtos.reduce((soma, p) => soma + p.preco * p.quantidade, 0);
+  // "Estoque baixo" e o resumo vêm calculados do servidor.
+  const emAlerta = produtos.filter((p) => p.estoque_baixo);
 
   // ---------- cadastro / edição ----------
   function abrirNovo() {
@@ -154,22 +181,25 @@ export default function Home() {
       nome: form.nome.trim(),
       categoria: form.categoria.trim() || null,
       preco: Number(form.preco),
-      quantidade: Number(form.quantidade),
       estoque_minimo: Number(form.estoque_minimo),
     };
 
-    if (editando) {
-      const { error } = await supabase.from("produtos").update(dados).eq("id", editando.id);
-      setSalvando(false);
-      if (error) return avisar("erro", "Não foi possível salvar as alterações.");
-      avisar("sucesso", "Produto atualizado com sucesso.");
-    } else {
-      const { data: userData } = await supabase.auth.getUser();
-      const { error } = await supabase.from("produtos").insert({ ...dados, user_id: userData.user?.id });
-      setSalvando(false);
-      if (error) return avisar("erro", "Não foi possível cadastrar o produto.");
-      avisar("sucesso", "Produto cadastrado com sucesso.");
+    const r = editando
+      ? await chamarApi(`/api/produtos/${editando.id}`, { method: "PATCH", body: JSON.stringify(dados) })
+      : await chamarApi("/api/produtos", {
+          method: "POST",
+          body: JSON.stringify({ ...dados, quantidade_inicial: Number(form.quantidade) }),
+        });
+    setSalvando(false);
+
+    if (!r.ok) {
+      if (r.campos) {
+        const { quantidade_inicial, ...outros } = r.campos;
+        setErrosForm({ ...outros, ...(quantidade_inicial ? { quantidade: quantidade_inicial } : {}) });
+      }
+      return avisar("erro", r.erro);
     }
+    avisar("sucesso", editando ? "Produto atualizado com sucesso." : "Produto cadastrado com sucesso.");
     setFormAberto(false);
     carregarProdutos();
   }
@@ -177,8 +207,8 @@ export default function Home() {
   // ---------- exclusão ----------
   async function confirmarExclusao() {
     if (!excluindo) return;
-    const { error } = await supabase.from("produtos").delete().eq("id", excluindo.id);
-    if (error) avisar("erro", "Não foi possível excluir o produto.");
+    const r = await chamarApi(`/api/produtos/${excluindo.id}`, { method: "DELETE" });
+    if (!r.ok) avisar("erro", r.erro);
     else avisar("sucesso", `"${excluindo.nome}" foi excluído.`);
     setExcluindo(null);
     carregarProdutos();
@@ -201,28 +231,21 @@ export default function Home() {
       setMovErro("Informe uma quantidade inteira maior que zero.");
       return;
     }
-    if (movTipo === "saida" && qtd > movProduto.quantidade) {
-      setMovErro(`Estoque insuficiente. Disponível: ${movProduto.quantidade}.`);
-      return;
-    }
+    if (movEnviando) return;
 
-    const novaQuantidade = movTipo === "entrada" ? movProduto.quantidade + qtd : movProduto.quantidade - qtd;
-
-    const { error: erroUpdate } = await supabase
-      .from("produtos")
-      .update({ quantidade: novaQuantidade })
-      .eq("id", movProduto.id);
-    if (erroUpdate) {
-      setMovErro("Não foi possível registrar a movimentação.");
-      return;
-    }
-
-    await supabase.from("movimentacoes").insert({
-      produto_id: movProduto.id,
-      tipo: movTipo,
-      quantidade: qtd,
-      observacao: movObs.trim() || null,
+    // O servidor recebe só o tipo e quanto entra/sai; ele confere o saldo e
+    // atualiza a quantidade de forma atômica.
+    setMovEnviando(true);
+    const r = await chamarApi(`/api/produtos/${movProduto.id}/movimentacoes`, {
+      method: "POST",
+      body: JSON.stringify({ tipo: movTipo, quantidade: qtd, observacao: movObs.trim() || null }),
     });
+    setMovEnviando(false);
+    if (!r.ok) {
+      setMovErro(r.erro);
+      if (r.status === 409) carregarProdutos();
+      return;
+    }
 
     avisar("sucesso", movTipo === "entrada" ? "Entrada registrada." : "Saída registrada.");
     setMovProduto(null);
@@ -233,12 +256,13 @@ export default function Home() {
   async function abrirDetalhe(p: Produto) {
     setDetalhe(p);
     setHistorico([]);
-    const { data } = await supabase
-      .from("movimentacoes")
-      .select("*")
-      .eq("produto_id", p.id)
-      .order("created_at", { ascending: false });
-    setHistorico(data ?? []);
+    const r = await chamarApi<{ produto: Produto; historico: Movimentacao[] }>(`/api/produtos/${p.id}`);
+    if (r.ok) {
+      setDetalhe(r.dados.produto);
+      setHistorico(r.dados.historico);
+    } else {
+      avisar("erro", r.erro);
+    }
   }
 
   // ---------- tela ----------
@@ -279,15 +303,15 @@ export default function Home() {
         <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Produtos cadastrados</p>
-            <p className="mt-1 text-2xl font-semibold">{produtos.length}</p>
+            <p className="mt-1 text-2xl font-semibold">{resumo.total_produtos}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Em estoque baixo</p>
-            <p className={`mt-1 text-2xl font-semibold ${emAlerta.length ? "text-amber-600" : ""}`}>{emAlerta.length}</p>
+            <p className={`mt-1 text-2xl font-semibold ${resumo.em_alerta ? "text-amber-600" : ""}`}>{resumo.em_alerta}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-500">Valor em estoque</p>
-            <p className="mt-1 text-2xl font-semibold">{formatarMoeda(valorTotal)}</p>
+            <p className="mt-1 text-2xl font-semibold">{formatarMoeda(resumo.valor_total)}</p>
           </div>
         </section>
 
@@ -323,7 +347,7 @@ export default function Home() {
         ) : (
           <ul className="space-y-3">
             {filtrados.map((p) => {
-              const baixo = p.quantidade <= p.estoque_minimo;
+              const baixo = p.estoque_baixo;
               return (
                 <li
                   key={p.id}
@@ -399,7 +423,7 @@ export default function Home() {
                   onChange={(e) => setForm({ ...form, categoria: e.target.value })}
                 />
               </label>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className={`grid grid-cols-1 gap-3 ${editando ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                 <label className="block">
                   <span className="mb-1 block text-sm font-medium">Preço (R$) *</span>
                   <input
@@ -412,8 +436,9 @@ export default function Home() {
                   />
                   {errosForm.preco && <span className="mt-1 block text-sm text-red-600">{errosForm.preco}</span>}
                 </label>
+                {!editando && (
                 <label className="block">
-                  <span className="mb-1 block text-sm font-medium">Quantidade</span>
+                  <span className="mb-1 block text-sm font-medium">Quantidade inicial</span>
                   <input
                     type="number"
                     min="0"
@@ -423,6 +448,7 @@ export default function Home() {
                   />
                   {errosForm.quantidade && <span className="mt-1 block text-sm text-red-600">{errosForm.quantidade}</span>}
                 </label>
+                )}
                 <label className="block">
                   <span className="mb-1 block text-sm font-medium">Estoque mínimo</span>
                   <input
@@ -437,6 +463,11 @@ export default function Home() {
                   )}
                 </label>
               </div>
+              {editando && (
+                <p className="text-sm text-slate-500">
+                  A quantidade em estoque só muda pelos botões de Entrada e Saída, para ficar registrada no histórico.
+                </p>
+              )}
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setFormAberto(false)} className="rounded-lg border border-slate-300 px-4 py-2">
                   Cancelar
@@ -496,8 +527,12 @@ export default function Home() {
                 <button type="button" onClick={() => setMovProduto(null)} className="rounded-lg border border-slate-300 px-4 py-2">
                   Cancelar
                 </button>
-                <button type="submit" className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
-                  Confirmar
+                <button
+                  type="submit"
+                  disabled={movEnviando}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+                >
+                  {movEnviando ? "Registrando..." : "Confirmar"}
                 </button>
               </div>
             </form>
