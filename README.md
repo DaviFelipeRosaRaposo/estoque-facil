@@ -1,6 +1,6 @@
 # Estoque Fácil
 
-> 🔗 **Sistema publicado:** https://estoque-facil-phi.vercel.app ← *(trocar pelo link da Vercel depois do deploy)*
+> 🔗 **Sistema publicado:** https://estoque-facil-phi.vercel.app
 
 Controle de estoque simplificado para pequenos comércios. Permite cadastrar produtos, registrar entradas e saídas com histórico e receber alerta quando um item chega ao estoque mínimo. Cada usuário tem seu próprio estoque, isolado dos demais.
 
